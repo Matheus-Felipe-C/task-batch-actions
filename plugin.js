@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-unused-vars
 const plugin = {
     replaceText: {
-        "Batch tag tasks": async function (app, text) {
+        "Tag tasks in batch": async function (app, text) {
             try {
                 await this._batchTagTasks(app, text);
             } catch (err) {
@@ -9,7 +9,7 @@ const plugin = {
                 app.alert(err);
             }
         },
-        "Batch move tasks": async function (app, text) {
+        "Tag tasks in batch": async function (app, text) {
             try {
                 await this._batchMoveTasks(app, text);
             } catch (error) {
@@ -20,7 +20,7 @@ const plugin = {
     },
 
     noteOption: {
-        "Batch tag tasks": async function (app, noteUUID) {
+        "Tag tasks in batch": async function (app, noteUUID) {
             try {
                 const taskNames = await this._transformTaskIntoText(app, noteUUID);
                 await this._batchTagTasks(app, taskNames);
@@ -29,7 +29,7 @@ const plugin = {
                 app.alert(err);
             }
         },        
-        "Batch move tasks": async function(app, noteUUID) {
+        "Move tasks in batch": async function(app, noteUUID) {
             try {
                 const taskNames = await this._transformTaskIntoText(app, noteUUID);
                 await this._batchMoveTasks(app, taskNames);

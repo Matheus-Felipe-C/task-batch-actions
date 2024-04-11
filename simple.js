@@ -1,6 +1,6 @@
 const note = {
     async noteOption(app, noteUUID) {
-        const targetNote = '8dbea880-7985-11ee-9046-0e396c8fc4bc'; //Change to any note UUID you want
+        const targetNote = '033ba01a-629c-11ed-bf97-aec53b9d6759'; //Change to any note UUID you want
         const tasks = await app.getNoteTasks({ uuid: noteUUID });
         
         console.log('Before changes:')
@@ -33,7 +33,7 @@ const note = {
         console.log(tasks);
 
         await Promise.all(tasks.map(async task => {
-            await app.updateTask(task.taskUUID, { noteUUID: targetNote });
+            await app.updateTask(task.uuid, { noteUUID: targetNote });
         }));
 
         console.log('After changes:')

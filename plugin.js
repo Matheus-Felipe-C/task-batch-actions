@@ -133,7 +133,7 @@ const plugin = {
         // Move tasks to target note
        await Promise.all(tasksToMove.map(async task => {
         const noteUUID = targetNote.uuid;
-        await app.updateTask(task.taskUUID, { noteUUID: noteUUID })
+        await app.updateTask(task.uuid, { noteUUID: noteUUID })
         console.log(task);
        }));
     },

@@ -9,7 +9,7 @@ const plugin = {
                 app.alert(err);
             }
         },
-        "Tag tasks in batch": async function (app, text) {
+        "Move tasks in batch": async function (app, text) {
             try {
                 await this._batchMoveTasks(app, text);
             } catch (error) {

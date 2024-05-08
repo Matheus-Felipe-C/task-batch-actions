@@ -15,7 +15,15 @@ const plugin = {
                 console.log(error);
                 app.alert(error);
             }
-        }
+        },
+        // "Delete tags in batch": async function (app, text) {
+        //     try {
+        //         await this._batchDeleteTags(app, text);
+        //     } catch (error) {
+        //         console.log(error)
+        //         app.alert(error)
+        //     }
+        // }
     },
 
     noteOption: {
@@ -36,17 +44,21 @@ const plugin = {
                 console.log(error)
                 app.alert(error)
             }
-        }
+        },
+        // "Delete tags in batch": async function (app, noteUUID) {
+        //     try {
+        //         const taskNames = await this._transformTaskIntoText(app, noteUUID);
+        //         await this._batchDeleteTags(app, taskNames);
+        //     } catch (error) {
+        //         console.log(error)
+        //         app.alert(error)
+        //     }
+        // }
     },
 
     async _batchTagTasks(app, text) {
-        const selectedTasks = text.split('\n');
-        console.log('All tasks to tag:\n')
-        console.log(selectedTasks);
-
-        const noteUUID = await app.context.noteUUID;
-        const noteTasks = await app.getNoteTasks({ uuid: noteUUID });
         const systemNotes = await app.filterNotes();
+        const tasksToTag = await this._transformTextIntoTaskArray(app, text);
 
         const inlineTag = await app.prompt("Choose an inline tag", {
             inputs: [
@@ -56,29 +68,6 @@ const plugin = {
 
         console.log('Inline tag to add:\n');
         console.log(inlineTag)
-
-        const tasksToTag = noteTasks.filter(task => {
-
-            //Task content without newlines
-            let taskContent = task.content.replace(/\\[\r\n]+/g, ' ');
-
-            //Removes the links if there are any. This is to ensure the functionality works
-            taskContent = taskContent.replace(/(?:__|[*#])|\[(.*?)\]\(.*?\)/gm, '$1');
-
-            console.log('Task content without link:\n');
-            console.log(taskContent);
-
-            for (let i = 0; i < selectedTasks.length; i++) {
-                if (taskContent.includes(selectedTasks[i].trim())) {
-                    return task;
-                }
-            }
-            return false;
-        })
-
-        console.log('Tasks to tag:\n');
-        console.log(tasksToTag);
-
 
         // Add the tag to the task name
         await Promise.all(tasksToTag.map(async task => {
@@ -90,13 +79,8 @@ const plugin = {
     },
 
     async _batchMoveTasks(app, text) {
-        const selectedTasks = text.split('\n');
-        console.log('All tasks to move:\n')
-        console.log(selectedTasks);
-
-        const currentNote = await app.context.noteUUID;
         const systemNotes = await app.filterNotes();
-        const currentNoteTasks = await app.getNoteTasks({ uuid: currentNote })
+        const tasksToMove = await this._transformTextIntoTaskArray(app, text);
 
         const targetNote = await app.prompt("Choose a note", {
             inputs: [
@@ -105,32 +89,8 @@ const plugin = {
         });
 
         console.log("Note to move tasks to: ")
-        console.log(targetNote.uuid);
+        console.log(targetNote);
 
-        //Pegar tarefas selecionadas
-        const tasksToMove = currentNoteTasks.filter(task => {
-
-            //Task content without newlines
-            let taskContent = task.content.replace(/\\[\r\n]+/g, ' ');
-
-            //Removes the links if there are any. This is to ensure the functionality works
-            taskContent = taskContent.replace(/(?:__|[*#])|\[(.*?)\]\(.*?\)/gm, '$1');
-            //Removes escape characters, if there are nay
-            taskContent = taskContent.replace(/\\/g, "");
-            console.log('Task content without link:\n');
-            console.log(taskContent);
-
-            for (let i = 0; i < selectedTasks.length; i++) {
-                if (taskContent.includes(selectedTasks[i].trim())) {
-                    return task;
-                }
-            }
-
-            return false;
-        });
-
-        console.log("Tasks found to move:")
-        console.log(tasksToMove);
 
         // Move tasks to target note
         await Promise.all(tasksToMove.map(async task => {
@@ -139,6 +99,19 @@ const plugin = {
             console.log(task);
         }));
     },
+
+    // async _batchDeleteTags(app, text) {
+    //     const selectedTasks = text.split('\n');
+    //     console.log('All tasks to tag:\n')
+    //     console.log(selectedTasks);
+
+    //     const noteUUID = await app.context.noteUUID;
+    //     const noteTasks = await app.getNoteTasks({ uuid: noteUUID });
+    //     const systemNotes = await app.filterNotes();
+
+    //     //Get all possible inline tags from the selected tasks
+        
+    // },
 
     async _transformTaskIntoText(app, noteUUID) {
         const noteTasks = await app.getNoteTasks({ uuid: noteUUID });
@@ -184,6 +157,36 @@ const plugin = {
         taskNames = taskNames.trim();
 
         return taskNames;
+    },
+
+    async _transformTextIntoTaskArray(app, text) {
+        const noteUUID = app.context.noteUUID;
+        const noteTasks = await app.getNoteTasks({ uuid: noteUUID });
+
+        const textTaskArray = text.split('\n')
+        console.log('All tasks to transform into array:\n')
+        console.log(textTaskArray);
+
+        const taskArray = noteTasks.filter(task => {
+            
+            //Task content without newlines
+            let taskContent = task.content.replace(/\\[\r\n]+/g, ' ');
+
+            //Removes the links if there are any. This is to ensure the functionality works
+            taskContent = taskContent.replace(/(?:__|[*#])|\[(.*?)\]\(.*?\)/gm, '$1');
+
+            console.log('Task content without link:\n');
+            console.log(taskContent);
+
+            for (let i = 0; i < textTaskArray.length; i++) {
+                if (taskContent.includes(textTaskArray[i].trim())) {
+                    return task;
+                }
+            }
+            return false;
+        })
+
+        return taskArray;
     }
 }
 

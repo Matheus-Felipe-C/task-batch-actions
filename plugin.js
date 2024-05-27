@@ -16,14 +16,14 @@ const plugin = {
                 app.alert(error);
             }
         },
-        // "Delete tags in batch": async function (app, text) {
-        //     try {
-        //         await this._batchDeleteTags(app, text);
-        //     } catch (error) {
-        //         console.log(error)
-        //         app.alert(error)
-        //     }
-        // }
+        "Delete tags in batch": async function (app, text) {
+            try {
+                await this._batchDeleteTags(app, text);
+            } catch (error) {
+                console.log(error)
+                app.alert(error)
+            }
+        }
     },
 
     noteOption: {
@@ -45,15 +45,15 @@ const plugin = {
                 app.alert(error)
             }
         },
-        // "Delete tags in batch": async function (app, noteUUID) {
-        //     try {
-        //         const taskNames = await this._transformTaskIntoText(app, noteUUID);
-        //         await this._batchDeleteTags(app, taskNames);
-        //     } catch (error) {
-        //         console.log(error)
-        //         app.alert(error)
-        //     }
-        // }
+        "Delete tags in batch": async function (app, noteUUID) {
+            try {
+                const taskNames = await this._transformTaskIntoText(app, noteUUID);
+                await this._batchDeleteTags(app, taskNames);
+            } catch (error) {
+                console.log(error)
+                app.alert(error)
+            }
+        }
     },
 
     async _batchTagTasks(app, text) {
@@ -100,18 +100,56 @@ const plugin = {
         }));
     },
 
-    // async _batchDeleteTags(app, text) {
-    //     const selectedTasks = text.split('\n');
-    //     console.log('All tasks to tag:\n')
-    //     console.log(selectedTasks);
+    async _batchDeleteTags(app, text) {
+        const taskArray = await this._transformTextIntoTaskArray(app, text);
+        let NoteUUIDs = [];
 
-    //     const noteUUID = await app.context.noteUUID;
-    //     const noteTasks = await app.getNoteTasks({ uuid: noteUUID });
-    //     const systemNotes = await app.filterNotes();
-
-    //     //Get all possible inline tags from the selected tasks
+        //Get all possible inline tags from the selected tasks
+        taskArray.map(task => {
         
-    // },
+            //Replaces the whole task name with only the noteUUID
+            const noteLink = task.content.match(/\((.*?)\)/g).map(match => match.slice(1, -1));
+            noteLink.forEach(link => {
+                const uuid = link.match(/\/([^\/]+)$/)
+                NoteUUIDs.push(uuid[1]) //Sends the second matching group, as the first has a weird "/"
+            })
+        }); 
+        
+        //Gets only the unique UUIDs
+        NoteUUIDs = [...new Set(NoteUUIDs)]
+
+        
+        //Gets the note and transforms it into an object similar to the select type
+        let tagOptions = await Promise.all(NoteUUIDs.map(async note => {
+            note = await app.findNote( { uuid: note })
+
+            const object = {
+                label: note.name,
+                value: `[${note.name}](https://www.amplenote.com/notes/${note.uuid})`
+            }
+            return object;
+        }))        
+
+        console.log('NoteUUIDs of the inline tags:');
+        console.log(tagOptions);
+
+        const selectedTag = await app.prompt("Choose an inline tag to remove", {
+            inputs: [
+                { label: 'Inline tag selection', type: 'select', options: tagOptions }
+            ]
+        });
+
+        //Delete the selected tag from the tasks
+        await Promise.all(taskArray.map(async task => {
+            if (task.content.includes(selectedTag)) {
+                const newTaskContent = task.content.replace(selectedTag, "");
+                console.log('new task name: ' + newTaskContent)
+                await app.updateTask(task.uuid, { content: newTaskContent });
+            }
+        }))
+
+        console.log('Inline tag removed!');
+    },
 
     async _transformTaskIntoText(app, noteUUID) {
         const noteTasks = await app.getNoteTasks({ uuid: noteUUID });
@@ -164,8 +202,6 @@ const plugin = {
         const noteTasks = await app.getNoteTasks({ uuid: noteUUID });
 
         const textTaskArray = text.split('\n')
-        console.log('All tasks to transform into array:\n')
-        console.log(textTaskArray);
 
         const taskArray = noteTasks.filter(task => {
             
@@ -175,9 +211,6 @@ const plugin = {
             //Removes the links if there are any. This is to ensure the functionality works
             taskContent = taskContent.replace(/(?:__|[*#])|\[(.*?)\]\(.*?\)/gm, '$1');
 
-            console.log('Task content without link:\n');
-            console.log(taskContent);
-
             for (let i = 0; i < textTaskArray.length; i++) {
                 if (taskContent.includes(textTaskArray[i].trim())) {
                     return task;
@@ -186,8 +219,9 @@ const plugin = {
             return false;
         })
 
+        console.log('Chosen tasks:')
+        console.log(taskArray);
         return taskArray;
     }
 }
 
-export default plugin;

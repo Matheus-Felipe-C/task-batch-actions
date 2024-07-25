@@ -66,6 +66,8 @@ const plugin = {
             ]
         });
 
+        if (!inlineTag) throw new Error("Inline tag field cannot be empty");
+
         console.log('Inline tag to add:\n');
         console.log(inlineTag)
 
@@ -87,6 +89,8 @@ const plugin = {
                 { label: 'Target note', type: 'note', options: systemNotes }
             ]
         });
+
+        if (!targetNote) throw new Error("Target note cannot be empty");
 
         console.log("Note to move tasks to: ")
         console.log(targetNote);
@@ -139,6 +143,8 @@ const plugin = {
             ]
         });
 
+        if (!selectedTag) throw new Error("Inline tag cannot be empty");
+
         //Delete the selected tag from the tasks
         await Promise.all(taskArray.map(async task => {
             if (task.content.includes(selectedTag)) {
@@ -153,6 +159,7 @@ const plugin = {
 
     async _transformTaskIntoText(app, noteUUID) {
         const noteTasks = await app.getNoteTasks({ uuid: noteUUID });
+        if (!noteTasks) throw new Error("Current note has no tasks");
 
         // Transform the noteTasks into an object array to match the inputs prompt
         const taskOptions = noteTasks.map(task => ({
@@ -163,6 +170,8 @@ const plugin = {
         const selectedTasks = await app.prompt('Select the tasks you want to act on', {
             inputs: taskOptions
         });
+
+        if (!selectedTasks) throw new Error("Choose at least one tasks in order to proceed");
 
         // Add all of the task names into a single variable to send to the function
         let taskNames = '';
@@ -200,6 +209,8 @@ const plugin = {
     async _transformTextIntoTaskArray(app, text) {
         const noteUUID = app.context.noteUUID;
         const noteTasks = await app.getNoteTasks({ uuid: noteUUID });
+
+        if (!selectedTasks) throw new Error("Choose at least one tasks in order to proceed");
 
         const textTaskArray = text.split('\n')
 

@@ -210,7 +210,7 @@ const plugin = {
         const noteUUID = app.context.noteUUID;
         const noteTasks = await app.getNoteTasks({ uuid: noteUUID });
 
-        if (!selectedTasks) throw new Error("Choose at least one tasks in order to proceed");
+        if (!noteTasks) throw new Error("Choose at least one tasks in order to proceed");
 
         const textTaskArray = text.split('\n')
 

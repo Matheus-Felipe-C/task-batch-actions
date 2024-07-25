@@ -73,7 +73,7 @@ const plugin = {
 
         // Add the tag to the task name
         await Promise.all(tasksToTag.map(async task => {
-            const newtaskName = ` ${task.content} [${inlineTag.name}](https://www.amplenote.com/notes/${inlineTag.uuid})`;
+            const newtaskName = ` ${task.content}\n[${inlineTag.name}](https://www.amplenote.com/notes/${inlineTag.uuid})`;
             await app.updateTask(task.uuid, { content: newtaskName });
         }));
 

@@ -220,7 +220,7 @@ const plugin = {
             let taskContent = task.content.replace(/\\[\r\n]+/g, ' ');
 
             //Removes the links if there are any. This is to ensure the functionality works
-            taskContent = taskContent.replace(/(?:__|[*#])|\[(.*?)\]\(.*?\)/gm, '$1');
+            taskContent = taskContent.replace(/(?:__|[*#])|\[(.*?)\]\(.*?\)|`([^`]*)`/gm, '$1$2');
 
             for (let i = 0; i < textTaskArray.length; i++) {
                 if (taskContent.includes(textTaskArray[i].trim())) {

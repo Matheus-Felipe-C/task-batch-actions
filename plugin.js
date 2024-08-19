@@ -56,6 +56,12 @@ const plugin = {
         }
     },
 
+    /**
+     * Adds inline tags to the selected tasks
+     * @param {*} app 
+     * @param {string} text With the tasks separated by linebreaks
+     * @returns {void}
+     */
     async _batchTagTasks(app, text) {
         const systemNotes = await app.filterNotes();
         const tasksToTag = await this._transformTextIntoTaskArray(app, text);
@@ -80,6 +86,12 @@ const plugin = {
         console.log('Tasks tagged successfully!');
     },
 
+    /**
+     * Moves the selected tasks to another note
+     * @param {*} app 
+     * @param {string} text With tasks separated by linebreaks
+     * @returns {void}
+     */
     async _batchMoveTasks(app, text) {
         const systemNotes = await app.filterNotes();
         const tasksToMove = await this._transformTextIntoTaskArray(app, text);
@@ -104,6 +116,12 @@ const plugin = {
         }));
     },
 
+    /**
+     * Deletes the inline tags of the selected tasks.
+     * @param {*} app 
+     * @param {string} text With the selected tasks separated by linebreaks
+     * @returns {void}
+     */
     async _batchDeleteTags(app, text) {
         const taskArray = await this._transformTextIntoTaskArray(app, text);
         let NoteUUIDs = [];
@@ -157,6 +175,12 @@ const plugin = {
         console.log('Inline tag removed!');
     },
 
+    /**
+     * Gets the tasks from the selected note and transforms them into text
+     * @param {*} app 
+     * @param {string} noteUUID 
+     * @returns {string} with the tasks, each separated by a line break
+     */
     async _transformTaskIntoText(app, noteUUID) {
         const noteTasks = await app.getNoteTasks({ uuid: noteUUID });
         if (!noteTasks) throw new Error("Current note has no tasks");
@@ -206,6 +230,12 @@ const plugin = {
         return taskNames;
     },
 
+    /**
+     * Transforms the tasks in string format into the original task object array
+     * @param {*} app 
+     * @param {string} text With the selected tasks separated by line breaks
+     * @returns {tasks[]} Array with the selected tasks
+     */
     async _transformTextIntoTaskArray(app, text) {
         const noteUUID = app.context.noteUUID;
         const noteTasks = await app.getNoteTasks({ uuid: noteUUID });

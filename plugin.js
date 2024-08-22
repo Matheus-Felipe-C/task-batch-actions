@@ -219,8 +219,10 @@ const plugin = {
 
                 //Convert hide time to date
                 let hideDate = new Date(`${hideUntil}, 2024`);
-                hideDate = hideDate.getTime() / 600;
-                console.log(hideDate);                
+                hideDate = hideDate.getTime() / 1000; //Transforms miliseconds into seconds
+                console.log("Hide date in seconds" + hideDate);
+
+
             }))
     },
 

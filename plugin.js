@@ -197,7 +197,7 @@ const plugin = {
         const prompt = await app.prompt("Select the properties to edit", {
             inputs: [
                 { label: "Hide task until (full dates only)", placeholder: "July 26", type: "text"},
-                { label: "Duration (in minutes)", type: "text"},
+                { label: "Duration (in minutes and numbers only)", type: "text"},
                 { label: "important", type: "checkbox"},
                 { label: "Urgent", type: "checkbox"},
                 { label: "Score (numbers only)", type: "text"},
@@ -207,11 +207,19 @@ const plugin = {
 
         const [hideUntil, duration, priority, urgent, score] = prompt;
 
-        const durationNumber = parseInt(duration);
-        const scoreNumber = parseInt(score);
+        let durationNumber;
+        let scoreNumber;
 
-        if (isNaN(durationNumber)) throw new Error("Duration field must be a number");
-        if (isNaN(scoreNumber)) throw new Error("Score field must be a number");
+        if (duration) {
+            durationNumber = parseInt(duration);
+            if (isNaN(durationNumber)) throw new Error("Duration field must be a number");
+        }
+
+        if (score) {
+            scoreNumber = parseInt(score);
+            if (isNaN(scoreNumber)) throw new Error("Score field must be a number");
+        }
+
 
         await Promise.all(tasks.map(async task => {
                 console.log(task);

@@ -242,6 +242,11 @@ const plugin = {
                 
                 //Change duration
                 if (durationNumber) {
+
+                    //Throw error if a task doesn't have a Start Date
+                    if (!task.startAt) {
+                        throw new Error("Can't set a duration for a task that isn't scheduled");
+                    }
                     let durationDate = durationNumber * 60000; //Duration time in miliseconds
                     durationDate += task.starTime;
     

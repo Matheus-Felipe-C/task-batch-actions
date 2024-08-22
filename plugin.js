@@ -227,22 +227,26 @@ const plugin = {
                 await app.updateTask(task.uuid, { important: priority, urgent: urgent});
 
                 //Change score
-                await app.updateTask(task.uuid, { score: score});
+                if (scoreNumber) await app.updateTask(task.uuid, { score: score});
 
                 //Change Hide Until of the task
 
                 //Convert hide time to date
-                let hideDate = new Date(`${hideUntil}, 2024`);
-                hideDate = hideDate.getTime() / 1000; //Transforms miliseconds into seconds
-                console.log("Hide date in seconds: " + hideDate);
-
-                await app.updateTask(task.uuid, { hideUntil: hideDate });
+                if (hideUntil) {
+                    let hideDate = new Date(`${hideUntil}, 2024`);
+                    hideDate = hideDate.getTime() / 1000; //Transforms miliseconds into seconds
+                    console.log("Hide date in seconds: " + hideDate);
+    
+                    await app.updateTask(task.uuid, { hideUntil: hideDate });
+                }
                 
                 //Change duration
-                let durationDate = durationDate * 60000; //Duration time in miliseconds
-                durationDate += task.starTime;
-
-                await app.updateTask(task.uuid, { endAt: durationDate});
+                if (durationNumber) {
+                    let durationDate = durationNumber * 60000; //Duration time in miliseconds
+                    durationDate += task.starTime;
+    
+                    await app.updateTask(task.uuid, { endAt: durationDate});
+                }
             }))
     },
 

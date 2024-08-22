@@ -23,6 +23,15 @@ const plugin = {
                 console.log(error)
                 app.alert(error)
             }
+        },
+
+        "Edit task details in batch": async function (app, text) {
+            try {
+                await this._batchEditTaskDetails(app, text);
+            } catch (error) {
+                console.log(error);
+                app.alert(error);
+            }
         }
     },
 
@@ -173,6 +182,46 @@ const plugin = {
         }))
 
         console.log('Inline tag removed!');
+    },
+
+    async _batchEditTaskDetails(app, text) {
+        const tasks = await this._transformTextIntoTaskArray(app, text);
+        /** Items to add
+         * repeat (no plugin support)
+         * start at (would be difficult without a rule)
+         * hide
+         * priority/urgency
+         * duration (endAt)
+         */
+
+        const prompt = await app.prompt("Select the properties to edit", {
+            inputs: [
+                { label: "Hide task until (full dates only)", placeholder: "July 26", type: "text"},
+                { label: "Duration (in minutes)", type: "text"},
+                { label: "important", type: "checkbox"},
+                { label: "Urgent", type: "checkbox"},
+                { label: "Score (numbers only)", type: "text"},
+
+            ]
+        });
+
+        const [hideUntil, duration, priority, urgent, score] = prompt;
+
+        if (typeof duration != Number && duration) throw new Error('Duration field must be a number');
+        if (typeof score != Number && duration) throw new Error("Score field must be a number");
+
+        await Promise.all(tasks.map(async task => {
+                //Adding a priority for the tasks
+                await app.updateTask(task.uuid, { important: priority, urgent: urgent});
+
+                //Change score
+                await app.updateTask(task.uuid, { score: score});
+
+                //Convert hide time to date
+                let hideDate = new Date(`${hideUntil}, 2024`);
+                hideDate = hideDate.getTime() / 600;
+                console.log(hideDate);                
+            }))
     },
 
     /**

@@ -207,8 +207,11 @@ const plugin = {
 
         const [hideUntil, duration, priority, urgent, score] = prompt;
 
-        if (typeof duration != Number && duration) throw new Error('Duration field must be a number');
-        if (typeof score != Number && duration) throw new Error("Score field must be a number");
+        const durationNumber = parseInt(duration);
+        const scoreNumber = parseInt(score);
+
+        if (isNaN(durationNumber)) throw new Error("Duration field must be a number");
+        if (isNaN(scoreNumber)) throw new Error("Score field must be a number");
 
         await Promise.all(tasks.map(async task => {
                 console.log(task);

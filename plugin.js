@@ -184,6 +184,16 @@ const plugin = {
         console.log('Inline tag removed!');
     },
 
+    /**
+     * Edits the task details of all selected tasks
+     * All of the attributes that can be edited through this function are:
+     * 
+     * - `Hide Until` as a date
+     * - `Priority` and `Urgency`
+     * - `Duration` in minutes
+     * @param {*} app 
+     * @param {string} text 
+     */
     async _batchEditTaskDetails(app, text) {
         const tasks = await this._transformTextIntoTaskArray(app, text);
         /** Items to add

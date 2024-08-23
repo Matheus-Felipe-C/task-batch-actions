@@ -133,7 +133,7 @@ const plugin = {
      */
     async _batchDeleteTags(app, text) {
         const taskArray = await this._transformTextIntoTaskArray(app, text);
-        let NoteUUIDs = [];
+        let noteUUIDs = [];
 
         //Get all possible inline tags from the selected tasks
         taskArray.map(task => {
@@ -142,16 +142,18 @@ const plugin = {
             const noteLink = task.content.match(/\((.*?)\)/g).map(match => match.slice(1, -1));
             noteLink.forEach(link => {
                 const uuid = link.match(/\/([^\/]+)$/)
-                NoteUUIDs.push(uuid[1]) //Sends the second matching group, as the first has a weird "/"
+                noteUUIDs.push(uuid[1]) //Sends the second matching group, as the first has a weird "/"
             })
         }); 
         
         //Gets only the unique UUIDs
-        NoteUUIDs = [...new Set(NoteUUIDs)]
+        noteUUIDs = [...new Set(noteUUIDs)]
+
+        if (!noteUUIDs) throw new Error("No inline tags found to delete");
 
         
         //Gets the note and transforms it into an object similar to the select type
-        let tagOptions = await Promise.all(NoteUUIDs.map(async note => {
+        let tagOptions = await Promise.all(noteUUIDs.map(async note => {
             note = await app.findNote( { uuid: note })
 
             const object = {
@@ -175,7 +177,9 @@ const plugin = {
         //Delete the selected tag from the tasks
         await Promise.all(taskArray.map(async task => {
             if (task.content.includes(selectedTag)) {
-                const newTaskContent = task.content.replace(selectedTag, "");
+                let newTaskContent = task.content.replace(selectedTag, "");
+
+                newTaskContent = newTaskContent.replace(/\\/g, "");
                 console.log('new task name: ' + newTaskContent)
                 await app.updateTask(task.uuid, { content: newTaskContent });
             }

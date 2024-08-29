@@ -266,9 +266,11 @@ const plugin = {
                     const startTime = task.startAt * 1000;
 
                     const durationDate = new Date(startTime + durationNumber * 60 * 1000);
+
+                    console.log("Time to edit: ", durationDate);
                     
     
-                    await app.updateTask(task.uuid, { endAt: durationDate});
+                    await app.updateTask(task.uuid, { endAt: Math.floor(durationDate.getTime() / 1000) });
                 }
             }))
     },

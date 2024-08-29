@@ -261,8 +261,12 @@ const plugin = {
                     if (!task.startAt) {
                         throw new Error("Can't set a duration for a task that isn't scheduled");
                     }
-                    let durationDate = durationNumber * 60000; //Duration time in miliseconds
-                    durationDate += task.starTime;
+                    
+                    //Get the start time from the task in minutes
+                    const startTime = task.startAt * 1000;
+
+                    const durationDate = new Date(startTime + durationNumber * 60 * 1000);
+                    
     
                     await app.updateTask(task.uuid, { endAt: durationDate});
                 }

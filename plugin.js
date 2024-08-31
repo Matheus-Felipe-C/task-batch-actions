@@ -62,6 +62,15 @@ const plugin = {
                 console.log(error)
                 app.alert(error)
             }
+        },
+        "Edit task details in batch": async function(app, noteUUID) {
+            try {
+                const taskNames = await this._transformTaskIntoText(app, noteUUID);
+                await this._batchDeleteTags(app, taskNames);
+            } catch (error) {
+                console.log(error);
+                app.alert(error);
+            }
         }
     },
 

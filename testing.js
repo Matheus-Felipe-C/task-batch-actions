@@ -64,3 +64,5 @@ const plugin = {
         return selectedTasks;
     }
 }
+
+export default plugin;

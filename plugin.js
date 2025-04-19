@@ -2,7 +2,8 @@ const plugin = {
     replaceText: {
         "Tag tasks in batch": async function (app, text) {
             try {
-                await this._batchTagTasks(app, text);
+                const tasks = await this._transformTextIntoTaskArray(app, text);
+                await this._batchTagTasks(app, tasks);
             } catch (err) {
                 console.log(err)
                 app.alert(err);
@@ -10,7 +11,8 @@ const plugin = {
         },
         "Move tasks in batch": async function (app, text) {
             try {
-                await this._batchMoveTasks(app, text);
+                const tasks = await this._transformTextIntoTaskArray(app, text);
+                await this._batchMoveTasks(app, tasks);
             } catch (error) {
                 console.log(error);
                 app.alert(error);
@@ -18,7 +20,8 @@ const plugin = {
         },
         "Delete tags in batch": async function (app, text) {
             try {
-                await this._batchDeleteTags(app, text);
+                const tasks = await this._transformTextIntoTaskArray(app, text);
+                await this._batchDeleteTags(app, tasks);
             } catch (error) {
                 console.log(error)
                 app.alert(error)
@@ -27,7 +30,8 @@ const plugin = {
 
         "Edit task details in batch": async function (app, text) {
             try {
-                await this._batchEditTaskDetails(app, text);
+                const tasks = await this._transformTextIntoTaskArray(app, text);
+                await this._batchEditTaskDetails(app, tasks);
             } catch (error) {
                 console.log(error);
                 app.alert(error);
@@ -38,8 +42,8 @@ const plugin = {
     noteOption: {
         "Tag tasks in batch": async function (app, noteUUID) {
             try {
-                const taskNames = await this._transformTaskIntoText(app, noteUUID);
-                await this._batchTagTasks(app, taskNames);
+                const tasks = await this._getTasksFromNote(app, noteUUID);
+                await this._batchTagTasks(app, tasks);
             } catch (err) {
                 console.log(err);
                 app.alert(err);
@@ -47,8 +51,8 @@ const plugin = {
         },
         "Move tasks in batch": async function (app, noteUUID) {
             try {
-                const taskNames = await this._transformTaskIntoText(app, noteUUID);
-                await this._batchMoveTasks(app, taskNames);
+                const tasks = await this._getTasksFromNote(app, noteUUID);
+                await this._batchMoveTasks(app, tasks);
             } catch (error) {
                 console.log(error)
                 app.alert(error)
@@ -56,8 +60,8 @@ const plugin = {
         },
         "Delete tags in batch": async function (app, noteUUID) {
             try {
-                const taskNames = await this._transformTaskIntoText(app, noteUUID);
-                await this._batchDeleteTags(app, taskNames);
+                const tasks = await this._getTasksFromNote(app, noteUUID);
+                await this._batchDeleteTags(app, tasks);
             } catch (error) {
                 console.log(error)
                 app.alert(error)
@@ -65,8 +69,8 @@ const plugin = {
         },
         "Edit task details in batch": async function(app, noteUUID) {
             try {
-                const taskNames = await this._transformTaskIntoText(app, noteUUID);
-                await this._batchEditTaskDetails(app, taskNames);
+                const tasks = await this._getTasksFromNote(app, noteUUID);
+                await this._batchEditTaskDetails(app, tasks);
             } catch (error) {
                 console.log(error);
                 app.alert(error);
@@ -109,9 +113,8 @@ const plugin = {
      * @param {string} text With tasks separated by linebreaks
      * @returns {void}
      */
-    async _batchMoveTasks(app, text) {
+    async _batchMoveTasks(app, tasks) {
         const systemNotes = await app.filterNotes();
-        const tasksToMove = await this._transformTextIntoTaskArray(app, text);
 
         const targetNote = await app.prompt("Choose a note", {
             inputs: [
@@ -126,7 +129,7 @@ const plugin = {
 
 
         // Move tasks to target note
-        await Promise.all(tasksToMove.map(async task => {
+        await Promise.all(tasks.map(async task => {
             const noteUUID = targetNote.uuid;
             await app.updateTask(task.uuid, { noteUUID: noteUUID })
             console.log(task);
@@ -139,12 +142,11 @@ const plugin = {
      * @param {string} text With the selected tasks separated by linebreaks
      * @returns {void}
      */
-    async _batchDeleteTags(app, text) {
-        const taskArray = await this._transformTextIntoTaskArray(app, text);
+    async _batchDeleteTags(app, tasks) {
         let noteUUIDs = [];
 
         //Get all possible inline tags from the selected tasks
-        taskArray.map(task => {
+        tasks.map(task => {
         
             //Replaces the whole task name with only the noteUUID
             const noteLink = task.content.match(/\((.*?)\)/g).map(match => match.slice(1, -1));
@@ -183,7 +185,7 @@ const plugin = {
         if (!selectedTag) throw new Error("Inline tag cannot be empty");
 
         //Delete the selected tag from the tasks
-        await Promise.all(taskArray.map(async task => {
+        await Promise.all(tasks.map(async task => {
             if (task.content.includes(selectedTag)) {
                 let newTaskContent = task.content.replace(selectedTag, "");
 
@@ -206,8 +208,7 @@ const plugin = {
      * @param {*} app 
      * @param {string} text 
      */
-    async _batchEditTaskDetails(app, text) {
-        const tasks = await this._transformTextIntoTaskArray(app, text);
+    async _batchEditTaskDetails(app, tasks) {
         /** Items to add
          * repeat (no plugin support)
          * start at (would be difficult without a rule)
@@ -317,7 +318,7 @@ const plugin = {
      * @param {string} text With the selected tasks separated by line breaks
      * @returns {tasks[]} Array with the selected tasks
      */
-    async   _transformTextIntoTaskArray(app, text) {
+    async  _transformTextIntoTaskArray(app, text) {
         const noteUUID = app.context.noteUUID;
         const noteTasks = await app.getNoteTasks({ uuid: noteUUID });
 

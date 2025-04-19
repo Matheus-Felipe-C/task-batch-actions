@@ -2,7 +2,7 @@ const plugin = {
     noteOption: {
         "Tag tasks in batch": async function(app, noteUUID) {
             try {
-                const tasks = this._getTasksFromNote(app, noteUUID);
+                const tasks = await this._getTasksFromNote(app, noteUUID);
                 await this._batchTagTasks(app, tasks);
             } catch (error) {
                 console.log(error);
@@ -51,15 +51,8 @@ const plugin = {
         
         if (!inputTasks) throw new Error("Choose at least one tasks in order to proceed");
         
-        const selectedTasks = noteTasks.filter(task => {
-            for (let i = 0; i < selectedTasks.length; i++) {
-                if (task.content.includes(selectedTasks[i])) {
-                    return true;
-                }
-            }
-
-            return false;
-        });
+        //Filters the tasks that were selected
+        const selectedTasks = noteTasks.filter((_, index) => inputTasks[index]);
 
         return selectedTasks;
     }

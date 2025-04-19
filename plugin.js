@@ -345,7 +345,7 @@ const plugin = {
      * @param {string} text With the selected tasks separated by line breaks
      * @returns {tasks[]} Array with the selected tasks
      */
-    async _transformTextIntoTaskArray(app, text) {
+    async   _transformTextIntoTaskArray(app, text) {
         const noteUUID = app.context.noteUUID;
         const noteTasks = await app.getNoteTasks({ uuid: noteUUID });
 

@@ -1,10 +1,10 @@
 import esbuild from "esbuild"
 
 const result = await esbuild.build({
-    entryPoints: ['plugin.js'],
+    entryPoints: ['testing.js'],
     bundle: true,
     format: "iife",
-    outfile: "lib/compiled.js",
+    outfile: "lib/testing.js",
     packages: "external",
     platform: "node",
     write: true,

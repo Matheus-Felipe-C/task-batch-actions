@@ -67,7 +67,7 @@ const plugin = {
                 app.alert(error)
             }
         },
-        "Edit task details in batch": async function(app, noteUUID) {
+        "Edit task details in batch": async function (app, noteUUID) {
             try {
                 const tasks = await this._getTasksFromNote(app, noteUUID);
                 await this._batchEditTaskDetails(app, tasks);
@@ -147,31 +147,31 @@ const plugin = {
 
         //Get all possible inline tags from the selected tasks
         tasks.map(task => {
-        
+
             //Replaces the whole task name with only the noteUUID
             const noteLink = task.content.match(/\((.*?)\)/g).map(match => match.slice(1, -1));
             noteLink.forEach(link => {
                 const uuid = link.match(/\/([^\/]+)$/)
                 noteUUIDs.push(uuid[1]) //Sends the second matching group, as the first has a weird "/"
             })
-        }); 
-        
+        });
+
         //Gets only the unique UUIDs
         noteUUIDs = [...new Set(noteUUIDs)]
 
         if (!noteUUIDs) throw new Error("No inline tags found to delete");
 
-        
+
         //Gets the note and transforms it into an object similar to the select type
         let tagOptions = await Promise.all(noteUUIDs.map(async note => {
-            note = await app.findNote( { uuid: note })
+            note = await app.findNote({ uuid: note })
 
             const object = {
                 label: note.name,
                 value: `[${note.name}](https://www.amplenote.com/notes/${note.uuid})`
             }
             return object;
-        }))        
+        }))
 
         console.log('NoteUUIDs of the inline tags:');
         console.log(tagOptions);
@@ -219,11 +219,11 @@ const plugin = {
 
         const prompt = await app.prompt("Select the properties to edit", {
             inputs: [
-                { label: "Hide task until (full dates only)", placeholder: "July 26", type: "text"},
-                { label: "Duration (in minutes and numbers only)", type: "text"},
-                { label: "important", type: "checkbox"},
-                { label: "Urgent", type: "checkbox"},
-                { label: "Score (numbers only)", type: "text"},
+                { label: "Hide task until (full dates only)", placeholder: "July 26", type: "text" },
+                { label: "Duration (in minutes and numbers only)", type: "text" },
+                { label: "important", type: "checkbox" },
+                { label: "Urgent", type: "checkbox" },
+                { label: "Score (numbers only)", type: "text" },
 
             ]
         });
@@ -245,43 +245,43 @@ const plugin = {
 
 
         await Promise.all(tasks.map(async task => {
-                console.log(task);
-                //Adding a priority for the tasks
-                await app.updateTask(task.uuid, { important: priority, urgent: urgent});
+            console.log(task);
+            //Adding a priority for the tasks
+            await app.updateTask(task.uuid, { important: priority, urgent: urgent });
 
-                //Change score
-                if (scoreNumber) await app.updateTask(task.uuid, { score: score});
+            //Change score
+            if (scoreNumber) await app.updateTask(task.uuid, { score: score });
 
-                //Change Hide Until of the task
+            //Change Hide Until of the task
 
-                //Convert hide time to date
-                if (hideUntil) {
-                    let hideDate = new Date(`${hideUntil}, 2024`);
-                    hideDate = hideDate.getTime() / 1000; //Transforms miliseconds into seconds
-                    console.log("Hide date in seconds: " + hideDate);
-    
-                    await app.updateTask(task.uuid, { hideUntil: hideDate });
+            //Convert hide time to date
+            if (hideUntil) {
+                let hideDate = new Date(`${hideUntil}, 2024`);
+                hideDate = hideDate.getTime() / 1000; //Transforms miliseconds into seconds
+                console.log("Hide date in seconds: " + hideDate);
+
+                await app.updateTask(task.uuid, { hideUntil: hideDate });
+            }
+
+            //Change duration
+            if (durationNumber) {
+
+                //Throw error if a task doesn't have a Start Date
+                if (!task.startAt) {
+                    throw new Error("Can't set a duration for a task that isn't scheduled");
                 }
-                
-                //Change duration
-                if (durationNumber) {
 
-                    //Throw error if a task doesn't have a Start Date
-                    if (!task.startAt) {
-                        throw new Error("Can't set a duration for a task that isn't scheduled");
-                    }
-                    
-                    //Get the start time from the task in minutes
-                    const startTime = task.startAt * 1000;
+                //Get the start time from the task in minutes
+                const startTime = task.startAt * 1000;
 
-                    const durationDate = new Date(startTime + durationNumber * 60 * 1000);
+                const durationDate = new Date(startTime + durationNumber * 60 * 1000);
 
-                    console.log("Time to edit: ", durationDate);
-                    
-    
-                    await app.updateTask(task.uuid, { endAt: Math.floor(durationDate.getTime() / 1000) });
-                }
-            }))
+                console.log("Time to edit: ", durationDate);
+
+
+                await app.updateTask(task.uuid, { endAt: Math.floor(durationDate.getTime() / 1000) });
+            }
+        }))
     },
 
     /**
@@ -293,19 +293,19 @@ const plugin = {
     async _getTasksFromNote(app, noteUUID) {
         const noteTasks = await app.getNoteTasks({ uuid: noteUUID });
         if (!noteTasks) throw new Error("Current note has no tasks");
-        
+
         // Transform the noteTasks into an object array to match the inputs prompt
         const taskOptions = noteTasks.map(task => ({
             label: task.content,
             type: 'checkbox'
         }));
-        
+
         const inputTasks = await app.prompt('Select the tasks you want to act on', {
             inputs: taskOptions
         });
-        
+
         if (!inputTasks) throw new Error("Choose at least one tasks in order to proceed");
-        
+
         //Filters the tasks that were selected
         const selectedTasks = noteTasks.filter((_, index) => inputTasks[index]);
 
@@ -318,29 +318,26 @@ const plugin = {
      * @param {string} text With the selected tasks separated by line breaks
      * @returns {tasks[]} Array with the selected tasks
      */
-    async  _transformTextIntoTaskArray(app, text) {
+    async _transformTextIntoTaskArray(app, text) {
         const noteUUID = app.context.noteUUID;
         const noteTasks = await app.getNoteTasks({ uuid: noteUUID });
 
         if (!noteTasks) throw new Error("Choose at least one tasks in order to proceed");
 
-        const textTaskArray = text.split('\n')
+        const textTaskArray = text
+            .split('\n')
+            .map(line => line.trim())
+            .filter(line => line.length > 0); // Remove empty lines
 
         const taskArray = noteTasks.filter(task => {
-            
-            //Task content without newlines
+            // Task content without newlines and markdown links
             let taskContent = task.content.replace(/\\[\r\n]+/g, ' ');
-
-            //Removes the links if there are any. This is to ensure the functionality works
             taskContent = taskContent.replace(/(?:__|[*#])|\[(.*?)\]\(.*?\)|`([^`]*)`/gm, '$1$2');
+            taskContent = taskContent.trim();
 
-            for (let i = 0; i < textTaskArray.length; i++) {
-                if (taskContent.includes(textTaskArray[i].trim())) {
-                    return task;
-                }
-            }
-            return false;
-        })
+            // Compare against exact matches
+            return textTaskArray.includes(taskContent);
+        });
 
         console.log('Chosen tasks:')
         console.log(taskArray);
